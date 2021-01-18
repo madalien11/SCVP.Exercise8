@@ -3,10 +3,11 @@
 
 #include <iostream>
 #include <iomanip>
-#include <systemc.h>
-#include <tlm.h>
 #include <map>
 #include <queue>
+
+#include <systemc.h>
+#include <tlm.h>
 
 // Convenience Sockets:
 #include <tlm_utils/simple_initiator_socket.h>

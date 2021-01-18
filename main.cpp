@@ -33,14 +33,15 @@
 
 #include <iostream>
 #include <iomanip>
-#include <systemc.h>
-#include <tlm.h>
 #include <map>
 #include <queue>
 
+#include <systemc.h>
+#include <tlm.h>
+
 // Convenience Sockets:
-#include "tlm_utils/multi_passthrough_initiator_socket.h"
-#include "tlm_utils/multi_passthrough_target_socket.h"
+#include <tlm_utils/multi_passthrough_initiator_socket.h>
+#include <tlm_utils/multi_passthrough_target_socket.h>
 
 #include "memory_manager.h"
 #include "initiator.h"

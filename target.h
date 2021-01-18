@@ -3,19 +3,20 @@
 
 #include <iostream>
 #include <iomanip>
-#include <systemc.h>
-#include <tlm.h>
 #include <map>
 #include <queue>
 
+#include <systemc.h>
+#include <tlm.h>
+
 // Convenience Sockets:
-#include "tlm_utils/simple_initiator_socket.h"
-#include "tlm_utils/simple_target_socket.h"
-#include "tlm_utils/multi_passthrough_initiator_socket.h"
-#include "tlm_utils/multi_passthrough_target_socket.h"
+#include <tlm_utils/simple_initiator_socket.h>
+#include <tlm_utils/simple_target_socket.h>
+#include <tlm_utils/multi_passthrough_initiator_socket.h>
+#include <tlm_utils/multi_passthrough_target_socket.h>
 
 // PEQ:
-#include "tlm_utils/peq_with_cb_and_phase.h"
+#include <tlm_utils/peq_with_cb_and_phase.h>
 
 // MM and tools:
 #include "memory_manager.h"
