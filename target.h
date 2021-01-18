@@ -3,19 +3,20 @@
 
 #include <iostream>
 #include <iomanip>
-#include <systemc.h>
-#include <tlm.h>
 #include <map>
 #include <queue>
 
+#include <systemc.h>
+#include <tlm.h>
+
 // Convenience Sockets:
-#include "tlm_utils/simple_initiator_socket.h"
-#include "tlm_utils/simple_target_socket.h"
-#include "tlm_utils/multi_passthrough_initiator_socket.h"
-#include "tlm_utils/multi_passthrough_target_socket.h"
+#include <tlm_utils/simple_initiator_socket.h>
+#include <tlm_utils/simple_target_socket.h>
+#include <tlm_utils/multi_passthrough_initiator_socket.h>
+#include <tlm_utils/multi_passthrough_target_socket.h>
 
 // PEQ:
-#include "tlm_utils/peq_with_cb_and_phase.h"
+#include <tlm_utils/peq_with_cb_and_phase.h>
 
 // MM and tools:
 #include "memory_manager.h"
@@ -28,13 +29,13 @@ using namespace std;
 
 SC_MODULE(Target)
 {
-    public:
+public:
     tlm_utils::simple_target_socket<Target> tSocket;
 
-    private:
+private:
     unsigned char mem[512];
 
-    protected:
+protected:
     bool responseInProgress;
     tlm::tlm_generic_payload* endRequestPending;
     tlm_utils::peq_with_cb_and_phase<Target> peq;
@@ -42,31 +43,31 @@ SC_MODULE(Target)
     unsigned int bufferSize;
     std::queue<tlm::tlm_generic_payload*> responseQueue;
 
-    public:
+public:
     SC_HAS_PROCESS(Target);
     Target(sc_module_name name, unsigned int bufferSize = 8) : sc_module(name),
         tSocket("tSocket"),
         responseInProgress(false),
-        endRequestPending(0),
+        endRequestPending(nullptr),
         peq(this, &Target::peqCallback),
-        bufferSize(bufferSize),
-        numberOfTransactions(0)
+        numberOfTransactions(0),
+        bufferSize(bufferSize)
     {
         tSocket.register_b_transport(this, &Target::b_transport);
         tSocket.register_nb_transport_fw(this, &Target::nb_transport_fw);
     }
 
-    void printBuffer(int max, int n)
+    void printBuffer(unsigned int max, unsigned int n)
     {
         std::cout << "\033[1;35m("
                   << name()
                   << ")@"  << setfill(' ') << setw(12) << sc_time_stamp()
                   << " Target Buffer: "
                   << "[";
-        for(int i = 0; i < n; i++) {
+        for (unsigned int i = 0; i < n; i++) {
             std::cout << "█";
         }
-        for(int i = 0; i < max-n; i++) {
+        for (unsigned int i = 0; i < max-n; i++) {
             std::cout << " ";
         }
         std::cout << "]"
@@ -143,7 +144,7 @@ SC_MODULE(Target)
             if (endRequestPending)
             {
                 sendEndRequest(*endRequestPending);
-                endRequestPending = 0;
+                endRequestPending = nullptr;
             }
         }
         else if(phase == INTERNAL)
@@ -206,7 +207,7 @@ SC_MODULE(Target)
             trans.set_response_status( tlm::TLM_ADDRESS_ERROR_RESPONSE );
             return;
         }
-        if (byt != 0) {
+        if (byt != nullptr) {
             trans.set_response_status( tlm::TLM_BYTE_ENABLE_ERROR_RESPONSE );
             return;
         }

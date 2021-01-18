@@ -37,21 +37,21 @@
 #ifndef MEMORY_MANAGER_H
 #define MEMORY_MANAGER_H
 
-#include <tlm.h>
-
 #include <vector>
+
+#include <tlm.h>
 
 typedef tlm::tlm_generic_payload gp;
 
 class MemoryManager : public tlm::tlm_mm_interface
 {
-  public:
+public:
     MemoryManager();
     virtual ~MemoryManager();
     virtual gp* allocate();
     virtual void free(gp* payload);
 
-  private:
+private:
     unsigned int numberOfAllocations;
     unsigned int numberOfFrees;
     std::vector<gp*> freePayloads;
