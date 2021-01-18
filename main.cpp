@@ -51,13 +51,13 @@ using namespace std;
 
 class routingExtension : public tlm::tlm_extension<routingExtension>
 {
-    private:
-    unsigned int inputPortNumber;
-    unsigned int outputPortNumber;
+private:
+    int inputPortNumber;
+    int outputPortNumber;
 
-    public:
-    routingExtension(unsigned int i, unsigned int o) : inputPortNumber(i),
-                                                       outputPortNumber(o)
+public:
+    routingExtension(int i, int o) : inputPortNumber(i),
+                                     outputPortNumber(o)
     {
         cout << "\033[1;36m(E"
              << ") @"  << setfill(' ') << setw(12) << sc_time_stamp()
@@ -67,25 +67,25 @@ class routingExtension : public tlm::tlm_extension<routingExtension>
              << "\033[0m" << endl;
     }
 
-    tlm_extension_base* clone() const
+    tlm_extension_base *clone() const
     {
         return new routingExtension(inputPortNumber, outputPortNumber);
     }
 
-    void copy_from(const tlm_extension_base& ext)
+    void copy_from(const tlm_extension_base &ext)
     {
-        const routingExtension& cpyFrom =
-                static_cast<const routingExtension&>(ext);
+        const routingExtension &cpyFrom =
+                static_cast<const routingExtension &>(ext);
         inputPortNumber = cpyFrom.getInputPortNumber();
         outputPortNumber = cpyFrom.getOutputPortNumber();
     }
 
-    unsigned int getInputPortNumber() const
+    int getInputPortNumber() const
     {
         return inputPortNumber;
     }
 
-    unsigned int getOutputPortNumber() const
+    int getOutputPortNumber() const
     {
         return outputPortNumber;
     }
@@ -94,7 +94,7 @@ class routingExtension : public tlm::tlm_extension<routingExtension>
 
 SC_MODULE(Interconnect)
 {
-    public:
+public:
     tlm_utils::multi_passthrough_target_socket<Interconnect> tSocket;
     tlm_utils::multi_passthrough_initiator_socket<Interconnect> iSocket;
 
@@ -105,8 +105,7 @@ SC_MODULE(Interconnect)
         iSocket.register_nb_transport_bw(this, &Interconnect::nb_transport_bw);
     }
 
-    private:
-
+private:
     int routeFW(int inPort,
                 tlm::tlm_generic_payload &trans,
                 bool store)
@@ -114,11 +113,11 @@ SC_MODULE(Interconnect)
         int outPort = 0;
 
         // Memory map implementation:
-        if(trans.get_address() < 512)
+        if (trans.get_address() < 512)
         {
             outPort = 0;
         }
-        else if(trans.get_address() >= 512 && trans.get_address() < 1024)
+        else if (trans.get_address() >= 512 && trans.get_address() < 1024)
         {
             // Correct Address:
             trans.set_address(trans.get_address() - 512);
@@ -129,32 +128,32 @@ SC_MODULE(Interconnect)
             trans.set_response_status( tlm::TLM_ADDRESS_ERROR_RESPONSE );
         }
 
-        if(store)
+        if (store)
         {
-            routingExtension* ext = new routingExtension(inPort, outPort);
+            routingExtension *ext = new routingExtension(inPort, outPort);
             trans.set_auto_extension(ext);
         }
 
         return outPort;
     }
 
-    virtual void b_transport( int id,
-                              tlm::tlm_generic_payload& trans,
-                              sc_time& delay )
+    virtual void b_transport(int id,
+                             tlm::tlm_generic_payload &trans,
+                             sc_time &delay)
     {
         int outPort = routeFW(id, trans, false);
         iSocket[outPort]->b_transport(trans, delay);
     }
 
 
-    virtual tlm::tlm_sync_enum nb_transport_fw( int id,
-                                                tlm::tlm_generic_payload& trans,
-                                                tlm::tlm_phase& phase,
-                                                sc_time& delay )
+    virtual tlm::tlm_sync_enum nb_transport_fw(int id,
+                                               tlm::tlm_generic_payload &trans,
+                                               tlm::tlm_phase &phase,
+                                               sc_time &delay)
     {
         int outPort = 0;
 
-        if(phase == tlm::BEGIN_REQ)
+        if (phase == tlm::BEGIN_REQ)
         {
             // In the case of nb_transport_fw the address attribute is valid
             // immediately upon entering the function but only when the phase
@@ -168,10 +167,10 @@ SC_MODULE(Interconnect)
             // Modify address accoring to memory map:
             outPort = routeFW(id, trans, true);
         }
-        else if(phase == tlm::END_RESP)
+        else if (phase == tlm::END_RESP)
         {
             // Adress was already modified in BEGIN_REQ phase:
-            routingExtension *ext = NULL;
+            routingExtension *ext = nullptr;
             trans.get_extension(ext);
             outPort = ext->getOutputPortNumber();
             trans.release();
@@ -196,12 +195,12 @@ SC_MODULE(Interconnect)
     }
 
 
-    virtual tlm::tlm_sync_enum nb_transport_bw( int id,
-                                                tlm::tlm_generic_payload& trans,
-                                                tlm::tlm_phase& phase,
-                                                sc_time& delay )
+    virtual tlm::tlm_sync_enum nb_transport_bw(int id,
+                                               tlm::tlm_generic_payload &trans,
+                                               tlm::tlm_phase &phase,
+                                               sc_time &delay)
     {
-        routingExtension *ext = NULL;
+        routingExtension *ext = nullptr;
         trans.get_extension(ext);
         int inPort = ext->getInputPortNumber();
 
@@ -209,16 +208,14 @@ SC_MODULE(Interconnect)
     }
 };
 
-int sc_main (int __attribute__((unused)) sc_argc,
-             char __attribute__((unused)) *sc_argv[])
+int sc_main (int, char **)
 {
+    Initiator *cpu1   = new Initiator("C1");
 
-    Initiator * cpu1   = new Initiator("C1");
+    Target *memory1   = new Target("M1", 8);
+    Target *memory2   = new Target("M2", 8);
 
-    Target * memory1   = new Target("M1", 8);
-    Target * memory2   = new Target("M2", 8);
-
-    Interconnect * bus = new Interconnect("B1");
+    Interconnect *bus = new Interconnect("B1");
 
     cpu1->iSocket.bind(bus->tSocket);
     bus->iSocket.bind(memory1->tSocket);
